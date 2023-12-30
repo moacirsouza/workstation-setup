@@ -1,0 +1,186 @@
+---
+- name: "Basic workstation setup"
+  hosts: localhost
+  vars:
+    user: "{{ lookup('env', 'USER') }}"
+    user_home: "/home/{{ user }}"
+    token_path: "/usr/lib/libeToken.so"
+  become: true
+  tasks:
+    - name: "Installing and configuring Git"
+      tags: git
+      block:
+        - name: "Git install 01: Add Git's repository into sources list"
+          ansible.builtin.apt_repository:
+            repo: ppa:git-core/ppa
+
+        - name: "Git install 02: Install Git"
+          ansible.builtin.apt:
+            name: git
+            update_cache: true
+
+        - name: "Git configuration 01: Create the 'gits' directory"
+          ansible.builtin.file:
+            state: directory
+            path: "{{ user_home }}/gits"
+            owner: "{{ user }}"
+            group: "{{ user }}"
+
+    - name: "Google Chrome installation"
+      tags: google-chrome
+      block:
+        - name: "Google Chrome install 01: Install apt-transport-https"
+          ansible.builtin.apt:
+            update_cache: true
+            state: latest
+
+        - name: "Google Chrome install 02: Add Googles's apt signing key"
+          ansible.builtin.apt_key:
+            url: https://dl.google.com/linux/linux_signing_key.pub
+            state: present
+
+        - name: "Google Chrome install 03: Add Google Chrome's repository into sources list"
+          ansible.builtin.apt_repository:
+            repo: deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main
+            state: present
+            filename: google-chrome
+
+        - name: "Google Chrome install 04: Install google-chrome-stable"
+          ansible.builtin.apt:
+            name: google-chrome-stable
+            state: latest
+            update_cache: true
+
+    - name: "Softwares that don't need extra configuration or adjustments [via SNAP]"
+      tags: snap-softwares
+      block:
+        - name: "Installing softwares via SNAP"
+          community.general.snap:
+            name:
+            - telegram-desktop
+            - discord
+            - steam
+
+    - name: "Softwares that don't need extra configuration or adjustments [via APT]"
+      tags: apt-softwares
+      block:
+        - name: "Installing softwares via APT"
+          ansible.builtin.apt:
+            update_cache: true
+            pkg:
+            - vim
+            - curl
+            - make
+            - jq
+            - gimp
+
+    - name: "Terminator Installation"
+      tags: terminator
+      block:
+        - name: "Installation of the terminator package"
+          ansible.builtin.apt:
+            update_cache: yes
+            pkg:
+            - terminator
+
+        - name: "Terminator configuration: Creating the Terminator configuration"
+          ansible.builtin.blockinfile:
+            path: /home/{{ lookup('env', 'USER') }}/.config/terminator/config
+            create: true
+            owner: "{{ user }}"
+            group: "{{ user }}"
+            block: |
+              [global_config]
+              [keybindings]
+              [profiles]
+                [[default]]
+                  background_darkness = 0.95
+                  background_type = transparent
+                  cursor_color = "#aaaaaa"
+                  foreground_color = "#ffffff"
+                  scrollback_infinite = True
+                  palette = "#000000:#cc0000:#4e9a06:#c4a000:#3465a4:#75507b:#06989a:#d3d7cf:#555753:#ef2929:#8ae234:#fce94f:#729fcf:#ad7fa8:#34e2e2:#eeeeec"
+              [layouts]
+                [[default]]
+                  [[[window0]]]
+                    type = Window
+                    parent = ""
+                  [[[child1]]]
+                    type = Terminal
+                    parent = window0
+              [plugins]
+
+#    - name: "Configuration of the SafeNet 5110 token to work in Firefox and Chrome"
+#      tags: safenet-config
+#      block:
+#        - name: "Installing the prerequisites for configuring SafeNet 5110 token"
+#          ansible.builtin.apt:
+#            update_cache: yes
+#            pkg:
+#            - libjbig0
+#            - libtiff5
+#            - fontconfig-config
+#            - libfontconfig1
+#            - libwxbase3.0-0v5
+#            - libpcsclite1
+#            - libccid
+#            - pcscd
+#            - opensc
+#            - unzip
+#            - libnss3-tools
+#
+#        - name: "SafeNet on Chrome 01: Making sure the NSS library dir doesn't exist beforehand"
+#          ansible.builtin.file:
+#            path: "{{ user_home }}/.pki/nssdb"
+#            state: absent
+#
+#        - name: "SafeNet on Chrome 02: Creating the the NSS library dir"
+#          ansible.builtin.file:
+#            path: "{{ user_home }}/.pki/nssdb"
+#            state: directory
+#          register: nssdb_dir
+#
+#        - name: "SafeNet on Chrome 03: Executing certutil e modutil commands to configure the Token"
+#          ansible.builtin.shell: |
+#            certutil -d {{ nssdb_dir.path }} -N
+#            modutil -dbdir sql:{{ nssdb_dir.path }} -add "SafeNet 5110" -libfile "{{ token_path }}"
+#            modutil -dbdir sql:{{ nssdb_dir.path }} -list
+#
+#    - name: "SafeNet Authentication Client"
+#      tags: safenet-client
+#      block:
+#        - name: "SafeNet Client Install 01: Download the package"
+#          ansible.builtin.unarchive:
+#            src: https://www.globalsign.com/en/safenet-drivers/USB/10.8/GlobalSign-SAC-Ubuntu-2204.zip
+#            dest: /tmp/
+#            remote_src: yes
+#
+###
+# NOTE: The community.general.git_config module doesn't seem to work
+###
+#        - name: "Git configuration 01: Create the .gitconfig file"
+#          ansible.builtin.file:
+#            state: touch
+#            path: "/home/{{ user }}/.gitconfig"
+#            owner: "{{ user }}"
+#            group: "{{ user }}"
+#            mode: '664'
+#
+#        - name: "Git configuration 02: Configuring global name for GitHub"
+#          community.general.git_config:
+#            name: user.name
+#            scope: global
+#            value: {{ git_username }}
+#          
+#        - name: "Git configuration 03: Configuring global e-mail for GitHub"
+#          community.general.git_config:
+#            name: user.email
+#            scope: global
+#            value: {{ git_useremail }}
+#
+    - name: "Debug"
+      tags: debug
+      block:
+        - name: "Check some variables values"
+          debug:
+            msg: "NSSDB dir {{ nssdb_dir.path }}"

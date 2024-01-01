@@ -10,42 +10,42 @@
     - name: "Installing and configuring Git"
       tags: git
       block:
-        - name: "Git install 01: Add Git's repository into sources list"
+        - name: "Installing Git 01: Add Git's repository into sources list"
           ansible.builtin.apt_repository:
             repo: ppa:git-core/ppa
 
-        - name: "Git install 02: Install Git"
+        - name: "Installing Git 02: Install Git"
           ansible.builtin.apt:
             name: git
             update_cache: true
 
-        - name: "Git configuration 01: Create the 'gits' directory"
+        - name: "Configuring Git 01: Create the 'gits' directory"
           ansible.builtin.file:
             state: directory
             path: "{{ user_home }}/gits"
             owner: "{{ user }}"
             group: "{{ user }}"
 
-    - name: "Google Chrome installation"
+    - name: "Installing Google Chrome"
       tags: google-chrome
       block:
-        - name: "Google Chrome install 01: Install apt-transport-https"
+        - name: "Installing Google Chrome 01: Install apt-transport-https"
           ansible.builtin.apt:
             update_cache: true
             state: latest
 
-        - name: "Google Chrome install 02: Add Googles's apt signing key"
+        - name: "Installing Google Chrome 02: Add Googles's apt signing key"
           ansible.builtin.apt_key:
             url: https://dl.google.com/linux/linux_signing_key.pub
             state: present
 
-        - name: "Google Chrome install 03: Add Google Chrome's repository into sources list"
+        - name: "Installing Google Chrome 03: Add Google Chrome's repository into sources list"
           ansible.builtin.apt_repository:
             repo: deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main
             state: present
             filename: google-chrome
 
-        - name: "Google Chrome install 04: Install google-chrome-stable"
+        - name: "Installing Google Chrome 04: Install google-chrome-stable"
           ansible.builtin.apt:
             name: google-chrome-stable
             state: latest
@@ -73,17 +73,33 @@
             - make
             - jq
             - gimp
+            - flatpak
+
+    - name: "Installation and configuration of flatpak"
+      tags: flatpak-softwares
+      block:
+        - name: "Installing the flathub flatpak repository remote, globally"
+          community.general.flatpak_remote:
+            name: flathub
+            state: present
+            flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+
+        - name: "Installing softwares via FLATPAK"
+          community.general.flatpak:
+            name:
+              - com.obsproject.Studio
+            state: present
 
     - name: "Terminator Installation"
       tags: terminator
       block:
-        - name: "Installation of the terminator package"
+        - name: "Installing terminator"
           ansible.builtin.apt:
             update_cache: yes
             pkg:
             - terminator
 
-        - name: "Terminator configuration: Creating the Terminator configuration"
+        - name: "Configuring terminator: Creating the Terminator configuration"
           ansible.builtin.blockinfile:
             path: /home/{{ lookup('env', 'USER') }}/.config/terminator/config
             create: true
@@ -178,9 +194,9 @@
 #            scope: global
 #            value: {{ git_useremail }}
 #
-    - name: "Debug"
-      tags: debug
-      block:
-        - name: "Check some variables values"
-          debug:
-            msg: "NSSDB dir {{ nssdb_dir.path }}"
+#    - name: "Debug"
+#      tags: debug
+#      block:
+#        - name: "Check some variables values"
+#          debug:
+#            msg: "NSSDB dir {{ nssdb_dir.path }}"

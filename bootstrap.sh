@@ -6,12 +6,10 @@
 # root from now on
 ###
 configure_sudoers(){
-    
     file=/etc/sudoers.d/${USER}
 
     echo "$USER ALL=(ALL) NOPASSWD:ALL" | \
     sudo tee $file
-
 }
 
 ###
@@ -19,12 +17,12 @@ configure_sudoers(){
 # present on the machine
 ###
 install_ansible(){
-
     if [ ! $(which ansible) ]
     then
-       sudo apt install ansible
+        sudo apt-add-repository ppa:ansible/ansible --yes
+        sudo apt-get update
+        sudo apt-get install ansible-core --yes
     fi
-
 }
 
 ###

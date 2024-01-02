@@ -73,7 +73,9 @@
             - make
             - jq
             - gimp
+            - mplayer
             - flatpak
+            - gnome-software-plugin-flatpak
 
     - name: "Installation and configuration of flatpak"
       tags: flatpak-softwares
@@ -88,7 +90,6 @@
           community.general.flatpak:
             name:
               - com.obsproject.Studio
-            state: present
 
     - name: "Terminator Installation"
       tags: terminator
@@ -101,7 +102,7 @@
 
         - name: "Configuring terminator: Creating the Terminator configuration"
           ansible.builtin.blockinfile:
-            path: /home/{{ lookup('env', 'USER') }}/.config/terminator/config
+            path: "{{ user_home }}/.config/terminator/config"
             create: true
             owner: "{{ user }}"
             group: "{{ user }}"

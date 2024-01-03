@@ -3,7 +3,7 @@
   hosts: localhost
   vars:
     user: "{{ lookup('env', 'USER') }}"
-    user_home: "/home/{{ user }}"
+    user_home: "{{ lookup('env', 'HOME') }}"
     token_path: "/usr/lib/libeToken.so"
   become: true
   tasks:

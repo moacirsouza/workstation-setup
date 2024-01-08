@@ -69,6 +69,7 @@
             update_cache: true
             pkg:
             - vim
+            - unrar-free
             - curl
             - make
             - jq
@@ -127,6 +128,14 @@
                     parent = window0
               [plugins]
 
+    - name: "Installation of the SERPRO O-VPN Client"
+      tags: serpro-ovpn
+      block:
+        - name: "Installing the SERPRO O-VPN Client"
+          ansible.builtin.apt:
+            deb: https://download-sigsar.estaleiro.serpro.gov.br/download/ovpnserpro_2.1.230215_amd64.deb
+# https://download-sigsar.estaleiro.serpro.gov.br/download/ovpnserpro_2.1.230215_amd64.deb
+
 #    - name: "Configuration of the SafeNet 5110 token to work in Firefox and Chrome"
 #      tags: safenet-config
 #      block:
@@ -178,7 +187,7 @@
 #        - name: "Git configuration 01: Create the .gitconfig file"
 #          ansible.builtin.file:
 #            state: touch
-#            path: "/home/{{ user }}/.gitconfig"
+#            path: "{{ user_home }}/.gitconfig"
 #            owner: "{{ user }}"
 #            group: "{{ user }}"
 #            mode: '664'
@@ -187,13 +196,13 @@
 #          community.general.git_config:
 #            name: user.name
 #            scope: global
-#            value: {{ git_username }}
+#            value: {{ git_username }} ### TODO: Define this variable later
 #          
 #        - name: "Git configuration 03: Configuring global e-mail for GitHub"
 #          community.general.git_config:
 #            name: user.email
 #            scope: global
-#            value: {{ git_useremail }}
+#            value: {{ git_useremail }} ### TODO: Define this variable later
 #
 #    - name: "Debug"
 #      tags: debug

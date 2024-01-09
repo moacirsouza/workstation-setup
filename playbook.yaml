@@ -5,6 +5,7 @@
     user: "{{ lookup('env', 'USER') }}"
     user_home: "{{ lookup('env', 'HOME') }}"
     token_path: "/usr/lib/libeToken.so"
+    safenet_ubuntu_version: "{{ ansible_distribution }}-{{ ansible_distribution_version | regex_replace('\\.', '') }}"
   become: true
   tasks:
     - name: "Installing and configuring Git"
@@ -134,27 +135,45 @@
         - name: "Installing the SERPRO O-VPN Client"
           ansible.builtin.apt:
             deb: https://download-sigsar.estaleiro.serpro.gov.br/download/ovpnserpro_2.1.230215_amd64.deb
-# https://download-sigsar.estaleiro.serpro.gov.br/download/ovpnserpro_2.1.230215_amd64.deb
 
-#    - name: "Configuration of the SafeNet 5110 token to work in Firefox and Chrome"
-#      tags: safenet-config
-#      block:
-#        - name: "Installing the prerequisites for configuring SafeNet 5110 token"
-#          ansible.builtin.apt:
-#            update_cache: yes
-#            pkg:
-#            - libjbig0
-#            - libtiff5
-#            - fontconfig-config
-#            - libfontconfig1
-#            - libwxbase3.0-0v5
-#            - libpcsclite1
-#            - libccid
-#            - pcscd
-#            - opensc
-#            - unzip
-#            - libnss3-tools
-#
+    - name: "Configuration of the SafeNet 5110 token to work in Firefox and Chrome"
+      tags: safenet-installation
+      block:
+        - name: "Installing the prerequisites for configuring SafeNet 5110 token"
+          ansible.builtin.apt:
+            update_cache: yes
+            pkg:
+            - libjbig0
+            - libtiff5
+            - fontconfig-config
+            - libfontconfig1
+            - libwxbase3.0-0v5
+            - libpcsclite1
+            - libccid
+            - pcscd
+            - opensc
+            - unzip
+            - libnss3-tools
+
+        - name: "SafeNet Client Install 01: Downloading and unpacking the SafeNet installation file"
+          ansible.builtin.unarchive:
+            src: https://www.globalsign.com/en/safenet-drivers/USB/10.8/GlobalSign-SAC-{{ safenet_ubuntu_version }}.zip
+            dest: /tmp/
+            remote_src: yes
+            list_files: true
+          register: files_from_zip
+
+        - name: "SafeNet Client Install 02: Finding and installing the deb file"
+          ansible.builtin.apt:
+            deb: "{{ files_from_zip.dest }}{{ files_from_zip.files | select('match', '^(.*)deb$') | first }}"
+
+#- name: "Debug"
+#  tags: debug
+#  block:
+#    - name: "Check some variables values"
+#      debug:
+#        msg: "{{ ansible_distribution }}-{{ ansible_distribution_version | regex_replace('\\.', '') }}"
+
 #        - name: "SafeNet on Chrome 01: Making sure the NSS library dir doesn't exist beforehand"
 #          ansible.builtin.file:
 #            path: "{{ user_home }}/.pki/nssdb"
@@ -172,14 +191,6 @@
 #            modutil -dbdir sql:{{ nssdb_dir.path }} -add "SafeNet 5110" -libfile "{{ token_path }}"
 #            modutil -dbdir sql:{{ nssdb_dir.path }} -list
 #
-#    - name: "SafeNet Authentication Client"
-#      tags: safenet-client
-#      block:
-#        - name: "SafeNet Client Install 01: Download the package"
-#          ansible.builtin.unarchive:
-#            src: https://www.globalsign.com/en/safenet-drivers/USB/10.8/GlobalSign-SAC-Ubuntu-2204.zip
-#            dest: /tmp/
-#            remote_src: yes
 #
 ###
 # NOTE: The community.general.git_config module doesn't seem to work
@@ -204,9 +215,3 @@
 #            scope: global
 #            value: {{ git_useremail }} ### TODO: Define this variable later
 #
-#    - name: "Debug"
-#      tags: debug
-#      block:
-#        - name: "Check some variables values"
-#          debug:
-#            msg: "NSSDB dir {{ nssdb_dir.path }}"

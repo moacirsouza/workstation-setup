@@ -78,6 +78,7 @@
             - mplayer
             - flatpak
             - gnome-software-plugin-flatpak
+            - pavucontrol
 
     - name: "Installation and configuration of flatpak"
       tags: flatpak-softwares
@@ -92,6 +93,7 @@
           community.general.flatpak:
             name:
               - com.obsproject.Studio
+              - org.mypaint.MyPaint
 
     - name: "Terminator Installation"
       tags: terminator

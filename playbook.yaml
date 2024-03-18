@@ -80,6 +80,7 @@
             - flatpak
             - gnome-software-plugin-flatpak
             - pavucontrol
+            - pip
 
     - name: "Installation and configuration of flatpak"
       tags: flatpak-softwares

@@ -81,6 +81,7 @@
             - gnome-software-plugin-flatpak
             - pavucontrol
             - pip
+            - rdesktop
 
     - name: "Installation and configuration of flatpak"
       tags: flatpak-softwares

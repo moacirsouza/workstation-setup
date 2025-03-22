@@ -82,6 +82,7 @@
             - pavucontrol
             - pip
             - rdesktop
+            - wine
 
     - name: "Installation and configuration of flatpak"
       tags: flatpak-softwares
